@@ -1,0 +1,978 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Coins, 
+  Smile, 
+  Shield, 
+  Car, 
+  Bug, 
+  Lightbulb, 
+  Bus, 
+  Factory, 
+  AlertCircle, 
+  CheckCircle, 
+  ArrowRight, 
+  RotateCcw, 
+  Building2,
+  Bike,
+  Moon,
+  Users,
+  Home,
+  Wifi,
+  AlertTriangle,
+  Syringe,
+  Landmark,
+  Eye,
+  CloudRain,
+  Lock,
+  Stethoscope,
+  Megaphone,
+  Bomb,
+  Crosshair
+} from 'lucide-react';
+
+// Styles pour l'animation et la police
+const globalStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&display=swap');
+  
+  .font-fredoka {
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .card-enter {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+`;
+
+// Données du jeu avec images mappées
+const SCENARIOS = [
+  // --- SCÉNARIOS AVEC IMAGES FOURNIES ---
+  {
+    id: 1,
+    category: "Délinquance",
+    title: "Rodéos Urbains",
+    Icon: Bike,
+    image: "III) Delinquency Rodéo_page-0001.jpg",
+    description: "Des jeunes organisent des rodéos bruyants et dangereux. Les riverains sont excédés !",
+    options: [
+      {
+        text: "Poursuite policière (Contact tactique)",
+        type: "bad",
+        stats: { budget: -10, happiness: -15, security: -10 },
+        feedback: "Dangereux ! Le guide indique que cela augmente les risques d'accidents graves (ex: Villiers-le-Bel) sans régler le fond.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Aménagements (Rochers/Chicanes)",
+        type: "good",
+        stats: { budget: -15, happiness: +10, security: +20 },
+        feedback: "Succès ! Méthode de Ternay (Rhône). Les obstacles physiques empêchent la vitesse. Le calme revient.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Ignorer le problème",
+        type: "neutral",
+        stats: { budget: 0, happiness: -20, security: -15 },
+        feedback: "L'inaction laisse la situation pourrir. Un enfant risque d'être blessé.",
+        color: "bg-gray-400"
+      }
+    ]
+  },
+  {
+    id: 4,
+    category: "Délinquance",
+    title: "Rassemblements Tuning",
+    Icon: Car,
+    image: "III) Delinquency Rasso_page-0001.jpg",
+    description: "Parking envahi le vendredi soir. Bruit, drifts et déchets.",
+    options: [
+      {
+        text: "Blocs béton sur le parking",
+        type: "neutral",
+        stats: { budget: -5, happiness: -10, security: +5 },
+        feedback: "Déplacement du problème vers la zone voisine.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Événement légal encadré",
+        type: "good",
+        stats: { budget: -10, happiness: +15, security: +15 },
+        feedback: "Bonne approche (Allemagne/Montréal). Un cadre légal réduit les runs sauvages.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Dispersions policières",
+        type: "bad",
+        stats: { budget: -10, happiness: -15, security: -5 },
+        feedback: "Inefficace. Ils reviennent dès que la police part (jeu du chat et la souris).",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 13,
+    category: "Délinquance",
+    title: "Prostitution de Rue",
+    Icon: Users,
+    image: "III) Delinquency Prostituée_page-0001.jpg",
+    description: "Présence visible dans le centre. Plaintes des riverains et insécurité pour les travailleurs.",
+    options: [
+      {
+        text: "Chasser vers la périphérie",
+        type: "bad",
+        stats: { budget: -5, happiness: -5, security: -10 },
+        feedback: "Déplacer le problème accroît la clandestinité et la dangerosité pour les femmes (ex: Barcelone).",
+        color: "bg-red-500"
+      },
+      {
+        text: "Aménagement & Social (Zurich)",
+        type: "good",
+        stats: { budget: -15, happiness: +10, security: +15 },
+        feedback: "Pragmatique. Sécuriser les lieux (éclairage, aide sociale) réduit les nuisances et violences, même en contexte abolitionniste.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Tolérance zéro",
+        type: "neutral",
+        stats: { budget: -10, happiness: +5, security: -5 },
+        feedback: "Difficile à appliquer et ne traite pas la précarité à la source.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 14,
+    category: "Délinquance",
+    title: "Drogues et Alcool",
+    Icon: Syringe,
+    image: "III) Delinquency Alcool et drogue_page-0001.jpg",
+    description: "Consommation à ciel ouvert dans les parcs. Seringues au sol, sentiment d'insécurité.",
+    options: [
+      {
+        text: "Occupation positive (Jane Jacobs)",
+        type: "good",
+        stats: { budget: -10, happiness: +15, security: +20 },
+        feedback: "Visionnaire ! Ramener de la vie (jeux, familles, commerces) crée une 'surveillance naturelle' qui chasse le trafic.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Nettoyage par le vide (Grilles)",
+        type: "bad",
+        stats: { budget: -5, happiness: -10, security: -5 },
+        feedback: "Échec (ex: Paris/Marseille). Le trafic se déplace juste dans la rue d'à côté.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Plus de police uniquement",
+        type: "neutral",
+        stats: { budget: -15, happiness: -5, security: +5 },
+        feedback: "Coûteux et temporaire. Sans alternative sociale, les dealers reviennent.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 15,
+    category: "Délinquance",
+    title: "Blanchiment d'Argent",
+    Icon: Landmark,
+    image: "III) Delinquency Blanchiment d_argent_page-0001.jpg",
+    description: "Des commerces vides et des immeubles de luxe poussent, mais personne n'y habite. Spéculation ?",
+    options: [
+      {
+        text: "Régulation Foncière (Lisbonne)",
+        type: "good",
+        stats: { budget: -10, happiness: +10, security: +15 },
+        feedback: "Bien joué. Contrôler les investissements et favoriser la mixité empêche les quartiers de devenir des coquilles vides mafieuses.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Laisser faire le marché",
+        type: "bad",
+        stats: { budget: +15, happiness: -15, security: -15 },
+        feedback: "Dangereux (ex: Malte). L'argent sale fragilise l'économie locale et exclut les habitants.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Fermer les commerces suspects",
+        type: "neutral",
+        stats: { budget: -5, happiness: 0, security: +5 },
+        feedback: "Efficace ponctuellement, mais ne règle pas le flux financier global.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 16,
+    category: "Délinquance",
+    title: "Harcèlement de Rue",
+    Icon: Eye,
+    image: "III) Delinquency Micro agression_page-0001.jpg",
+    description: "Les femmes signalent des micro-agressions constantes dans le centre-ville.",
+    options: [
+      {
+        text: "Marches exploratoires & Eclairage",
+        type: "good",
+        stats: { budget: -10, happiness: +20, security: +15 },
+        feedback: "La bonne méthode. Co-construire la sécurité avec les usagères permet d'identifier et corriger les vrais points noirs.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Conseiller aux femmes d'être prudentes",
+        type: "bad",
+        stats: { budget: 0, happiness: -25, security: -10 },
+        feedback: "Inacceptable. C'est culpabiliser les victimes sans agir sur l'environnement.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Caméras partout",
+        type: "neutral",
+        stats: { budget: -20, happiness: -5, security: +10 },
+        feedback: "Rassure un peu, mais n'empêche pas les remarques sexistes ni les frottements.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 17,
+    category: "Délinquance",
+    title: "Cambriolages",
+    Icon: Lock,
+    image: "III) Delinquency Cambriolage_page-0001.jpg",
+    description: "Vague de vols dans les pavillons. Les habitants ont peur.",
+    options: [
+      {
+        text: "Participation Citoyenne (Voisins vigilants)",
+        type: "good",
+        stats: { budget: -5, happiness: +10, security: +10 },
+        feedback: "Efficace. Recréer du lien social et de l'attention mutuelle dissuade mieux que des murs.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Armer les habitants",
+        type: "bad",
+        stats: { budget: 0, happiness: -15, security: -25 },
+        feedback: "Catastrophe. Risque d'accidents domestiques et d'escalade de la violence.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Patrouilles aléatoires",
+        type: "neutral",
+        stats: { budget: -10, happiness: +5, security: +5 },
+        feedback: "Classique, mais la police ne peut pas être partout tout le temps.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 6,
+    category: "Habitat",
+    title: "Squat / Bidonville",
+    Icon: Home,
+    image: "III) Delinquency Bidonville_page-0001.jpg",
+    description: "Un bidonville s'est formé en périphérie. Conditions sanitaires déplorables.",
+    options: [
+      {
+        text: "Murer et expulser sans délai",
+        type: "neutral",
+        stats: { budget: -2, happiness: -10, security: -5 },
+        feedback: "Le camp se reformera juste à côté (ex: Cas Euromédecine).",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Village de Transition (La Rauze)",
+        type: "good",
+        stats: { budget: -25, happiness: +30, security: +20 },
+        feedback: "Exemplaire ! (Montpellier). Un hébergement transitoire avec accompagnement social permet une sortie durable vers le logement.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Laisser en l'état",
+        type: "bad",
+        stats: { budget: 0, happiness: -20, security: -10 },
+        feedback: "Risque sanitaire et social majeur pour les occupants et les riverains.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 21,
+    category: "Délinquance",
+    title: "Trafic d'Armes",
+    Icon: Crosshair,
+    image: "III) Delinquency Traffic arme_page-0001.jpg",
+    description: "Des armes circulent dans le quartier. La violence monte d'un cran.",
+    options: [
+      {
+        text: "Coopération Police-Douane & Renseignement",
+        type: "good",
+        stats: { budget: -20, happiness: +5, security: +30 },
+        feedback: "Nécessaire. Le démantèlement des réseaux nécessite un travail de fond et de renseignement, pas juste du bleu dans la rue.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Fouilles systématiques aléatoires",
+        type: "neutral",
+        stats: { budget: -10, happiness: -15, security: +10 },
+        feedback: "Crée des tensions avec la population sans forcément trouver les caches.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Ignorer (Trop dangereux)",
+        type: "bad",
+        stats: { budget: 0, happiness: -40, security: -50 },
+        feedback: "Inadmissible. La sécurité publique est gravement menacée.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 22,
+    category: "Délinquance",
+    title: "Attentats / Terrorisme",
+    Icon: Bomb,
+    image: "III) Delinquency Attentats_page-0001.jpg",
+    description: "Menace terroriste élevée sur les lieux publics.",
+    options: [
+      {
+        text: "Urbanisme sécuritaire (Bornes, chicanes)",
+        type: "good",
+        stats: { budget: -25, happiness: 0, security: +25 },
+        feedback: "Protection passive. Empêcher les véhicules-béliers tout en gardant l'espace piéton (ex: Promenade des Anglais post-attentat).",
+        color: "bg-green-500"
+      },
+      {
+        text: "Etat d'urgence permanent",
+        type: "neutral",
+        stats: { budget: -30, happiness: -20, security: +15 },
+        feedback: "Efficace à court terme mais pèse lourdement sur les libertés et le budget.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Ne rien changer",
+        type: "bad",
+        stats: { budget: 0, happiness: -10, security: -40 },
+        feedback: "Irresponsable face à une menace avérée.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 18,
+    category: "Délinquance",
+    title: "Vols de Véhicules",
+    Icon: Car,
+    image: "III) Delinquency Vol et dégradation_page-0001.jpg",
+    description: "Les voitures disparaissent ou sont désossées la nuit.",
+    options: [
+      {
+        text: "Vidéoprotection intelligente (LAPI)",
+        type: "good",
+        stats: { budget: -20, happiness: +5, security: +15 },
+        feedback: "Technologique. La lecture de plaques (LAPI) comme à Londres ou Tokyo aide à repérer les réseaux organisés.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Éclairer tous les parkings a giorno",
+        type: "neutral",
+        stats: { budget: -10, happiness: -5, security: +5 },
+        feedback: "Utile, mais attention à la pollution lumineuse et à la facture énergétique.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Ne rien faire (Assurance paiera)",
+        type: "bad",
+        stats: { budget: 0, happiness: -20, security: -10 },
+        feedback: "Les primes d'assurance vont exploser et les habitants partiront.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+
+  // --- AUTRES SCÉNARIOS (EN ATTENTE D'IMAGES) ---
+  {
+    id: 2,
+    category: "Environnement",
+    title: "Invasion de Rats",
+    Icon: Bug,
+    description: "Les rues sont sales et les rats prolifèrent. Crise sanitaire en vue !",
+    options: [
+      {
+        text: "Poison massif uniquement",
+        type: "neutral",
+        stats: { budget: -5, happiness: -5, security: +5 },
+        feedback: "Efficacité limitée. Si la nourriture reste accessible, ils reviennent.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Conteneurs enterrés (Plan Propreté)",
+        type: "good",
+        stats: { budget: -15, happiness: +15, security: +15 },
+        feedback: "Excellent ! Comme à Paris ou Nantes, couper l'accès aux déchets est la seule solution durable.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Fermer les parcs",
+        type: "bad",
+        stats: { budget: 0, happiness: -30, security: +5 },
+        feedback: "Punir les habitants en fermant les espaces verts n'est pas une solution acceptable.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 7,
+    category: "Mobilité",
+    title: "Stationnement Sauvage",
+    Icon: Car,
+    description: "Les voitures se garent sur les trottoirs et passages piétons. Visibilité nulle, piétons en danger.",
+    options: [
+      {
+        text: "Potelets et élargissement trottoirs",
+        type: "good",
+        stats: { budget: -10, happiness: +10, security: +15 },
+        feedback: "Bien vu (ex: Nantes Feydeau). Empêcher physiquement le stationnement rend l'espace aux piétons.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Campagne de sensibilisation",
+        type: "neutral",
+        stats: { budget: -5, happiness: -5, security: 0 },
+        feedback: "Peu efficace. Les habitudes reviennent vite sans contrainte physique.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Tolérance (Manque de places)",
+        type: "bad",
+        stats: { budget: 0, happiness: +5, security: -15 },
+        feedback: "Risqué ! Un enfant masqué par une voiture mal garée peut se faire renverser.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 8,
+    category: "Mobilité",
+    title: "Partage de la Route",
+    Icon: AlertTriangle,
+    description: "Conflits violents entre vélos, piétons et voitures. La vitesse est excessive.",
+    options: [
+      {
+        text: "Zone 30 et priorité piétonne",
+        type: "good",
+        stats: { budget: -10, happiness: +10, security: +15 },
+        feedback: "Top ! Comme à Pau (Quartier des Halles), apaiser la vitesse réduit drastiquement les accidents.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Interdire les vélos",
+        type: "bad",
+        stats: { budget: 0, happiness: -20, security: +5 },
+        feedback: "Mauvais choix. La ville moderne doit encourager les mobilités douces, pas les exclure.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Plus de feux rouges",
+        type: "neutral",
+        stats: { budget: -10, happiness: -5, security: +5 },
+        feedback: "Contre-intuitif : Poynton (UK) a prouvé que supprimer la signalisation excessive responsabilise les conducteurs.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 9,
+    category: "Social",
+    title: "Personnes Sans-Abri",
+    Icon: Home,
+    description: "Augmentation du nombre de SDF dans le centre. Tensions avec les commerçants.",
+    options: [
+      {
+        text: "Arrêtés anti-mendicité",
+        type: "bad",
+        stats: { budget: -5, happiness: -10, security: -5 },
+        feedback: "Inefficace. Cela déplace juste le problème et stigmatise les plus vulnérables.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Logement d'abord (Housing First)",
+        type: "good",
+        stats: { budget: -20, happiness: +15, security: +15 },
+        feedback: "La seule solution durable. Offrir un toit stable permet la réinsertion, contrairement aux abris précaires.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Bancs anti-SDF",
+        type: "neutral",
+        stats: { budget: -5, happiness: -15, security: 0 },
+        feedback: "Architecture hostile. Cela rend la ville désagréable pour tous, sans aider personne.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 10,
+    category: "Social",
+    title: "Populations Nomades",
+    Icon: Bus,
+    description: "Une aire d'accueil des gens du voyage est dégradée et isolée. Tensions locales.",
+    options: [
+      {
+        text: "Expulsion immédiate",
+        type: "bad",
+        stats: { budget: -5, happiness: -10, security: -10 },
+        feedback: "Mauvais calcul. Sans solution, ils s'installeront illégalement ailleurs (stade, parking).",
+        color: "bg-red-500"
+      },
+      {
+        text: "Rénovation et Intégration (Modèle Nantes)",
+        type: "good",
+        stats: { budget: -15, happiness: +15, security: +15 },
+        feedback: "Bravo ! Intégrer l'aire au tissu urbain et améliorer les conditions de vie réduit les conflits et dégradations.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Laisser faire",
+        type: "neutral",
+        stats: { budget: 0, happiness: -10, security: -10 },
+        feedback: "L'insalubrité et le sentiment d'abandon vont augmenter les tensions.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 11,
+    category: "Social",
+    title: "Manque de Réseaux",
+    Icon: Wifi,
+    description: "Certains quartiers sont des 'zones blanches' (transport et internet). Isolement total.",
+    options: [
+      {
+        text: "Transport à la demande & 4G",
+        type: "good",
+        stats: { budget: -15, happiness: +20, security: +10 },
+        feedback: "Essentiel ! (Exemple Écosse/Hébrides). Briser l'isolement réduit la vulnérabilité sanitaire et sociale.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Ce n'est pas prioritaire",
+        type: "bad",
+        stats: { budget: 0, happiness: -20, security: -10 },
+        feedback: "Erreur. L'isolement crée un sentiment d'abandon propice à la colère sociale.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Service de taxi privé",
+        type: "neutral",
+        stats: { budget: 0, happiness: -5, security: 0 },
+        feedback: "Trop cher pour les populations précaires. Ne résout pas l'inégalité.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 12,
+    category: "Social",
+    title: "Manifestations",
+    Icon: Megaphone,
+    description: "Une grande manifestation est prévue. Risque de débordements et de casse.",
+    options: [
+      {
+        text: "Interdiction totale",
+        type: "bad",
+        stats: { budget: -5, happiness: -30, security: -15 },
+        feedback: "Risqué ! Interdire peut transformer une manif en émeute (ex: Gilets Jaunes).",
+        color: "bg-red-500"
+      },
+      {
+        text: "Encadrement et Médiation",
+        type: "good",
+        stats: { budget: -5, happiness: +5, security: +10 },
+        feedback: "La voie de la raison. Un parcours déclaré et sécurisé permet l'expression démocratique sans chaos.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Répression préventive",
+        type: "neutral",
+        stats: { budget: -10, happiness: -15, security: -5 },
+        feedback: "Peut radicaliser les manifestants et augmenter la violence.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 19,
+    category: "Aménagement",
+    title: "Risques Naturels (Inondations)",
+    Icon: CloudRain,
+    description: "Orage violent ! La route en cuvette est inondée, risque de noyade pour les automobilistes.",
+    options: [
+      {
+        text: "Barrières automatiques & Capteurs",
+        type: "good",
+        stats: { budget: -10, happiness: +10, security: +25 },
+        feedback: "Indispensable (Montpellier/Lez). Empêcher physiquement l'accès en cas de crue sauve des vies.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Panneau 'Attention'",
+        type: "bad",
+        stats: { budget: -2, happiness: -5, security: -10 },
+        feedback: "Insuffisant. Les gens forcent le passage et se retrouvent piégés.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Surélever toute la ville",
+        type: "neutral",
+        stats: { budget: -80, happiness: +10, security: +40 },
+        feedback: "Efficace mais impossible budgétairement !",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 20,
+    category: "Aménagement",
+    title: "Logement Insalubre",
+    Icon: Stethoscope,
+    description: "Des locataires tombent malades (asthme, plomb) dans des immeubles délabrés.",
+    options: [
+      {
+        text: "Permis de Louer & Rénovation",
+        type: "good",
+        stats: { budget: -15, happiness: +20, security: +10 },
+        feedback: "Vital. Contraindre les propriétaires à rénover protège la santé publique (Ex: Montreuil).",
+        color: "bg-green-500"
+      },
+      {
+        text: "Expulser les locataires",
+        type: "bad",
+        stats: { budget: -5, happiness: -25, security: -10 },
+        feedback: "Cruel. Vous jetez des familles malades à la rue sans régler l'état du bâtiment.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Campagne d'information",
+        type: "neutral",
+        stats: { budget: -5, happiness: 0, security: 0 },
+        feedback: "Savoir que c'est dangereux ne suffit pas si on n'a pas les moyens de déménager.",
+        color: "bg-yellow-500"
+      }
+    ]
+  },
+  {
+    id: 3,
+    category: "Social & Lumière",
+    title: "Peur nocturne",
+    Icon: Moon,
+    description: "Le quartier de la rivière est désert la nuit. Les femmes n'osent plus y passer.",
+    options: [
+      {
+        text: "Mettre des projecteurs aveuglants",
+        type: "neutral",
+        stats: { budget: -10, happiness: -5, security: +5 },
+        feedback: "Bof. Trop de lumière crée de l'éblouissement sans créer de lien social.",
+        color: "bg-yellow-500"
+      },
+      {
+        text: "Projet 'ToNite' (Turin) : Animation",
+        type: "good",
+        stats: { budget: -20, happiness: +25, security: +25 },
+        feedback: "Brillant ! Réaménager l'espace et soutenir les commerces nocturnes crée une sécurité réelle.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Couvre-feu",
+        type: "bad",
+        stats: { budget: 0, happiness: -40, security: +5 },
+        feedback: "La ville doit vivre ! Le couvre-feu tue l'activité et renforce le sentiment d'abandon.",
+        color: "bg-red-500"
+      }
+    ]
+  },
+  {
+    id: 5,
+    category: "Mobilité",
+    title: "Bus de nuit",
+    Icon: Bus,
+    description: "Les usagers ont peur de marcher entre l'arrêt et chez eux.",
+    options: [
+      {
+        text: "Supprimer les bus le soir",
+        type: "bad",
+        stats: { budget: +5, happiness: -30, security: -10 },
+        feedback: "Terrible ! Renforce l'isolement et oblige à prendre des risques.",
+        color: "bg-red-500"
+      },
+      {
+        text: "Arrêt à la demande",
+        type: "good",
+        stats: { budget: -5, happiness: +20, security: +15 },
+        feedback: "Parfait ! (Nantes/Montréal). S'arrêter au plus près du domicile sécurise le trajet.",
+        color: "bg-green-500"
+      },
+      {
+        text: "Affiches 'Soyez prudents'",
+        type: "neutral",
+        stats: { budget: -2, happiness: -5, security: 0 },
+        feedback: "Communication inefficace sur le sentiment d'insécurité.",
+        color: "bg-yellow-500"
+      }
+    ]
+  }
+];
+
+// --- COMPOSANTS REACT ---
+
+const StatBar = ({ Icon, value, color, label }) => (
+  <div className="flex flex-col items-center w-1/3 px-2">
+    <div className={`text-2xl mb-1 ${value < 20 ? 'text-red-500 animate-pulse' : 'text-gray-700'}`}>
+      <Icon size={28} />
+    </div>
+    <div className="w-full bg-gray-300 rounded-full h-4 border-2 border-white shadow-inner overflow-hidden relative">
+      <div 
+        className={`h-full transition-all duration-1000 ease-out ${color}`} 
+        style={{ width: `${Math.max(5, Math.min(100, value))}%` }}
+      ></div>
+    </div>
+    <span className="text-xs font-bold text-gray-600 mt-1 uppercase">{label}</span>
+  </div>
+);
+
+const Modal = ({ feedback, onNext, isGood }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 font-fredoka">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center transform scale-100 transition-transform duration-300 border-4 border-blue-500">
+      <div className={`flex justify-center mb-4 ${isGood ? 'text-green-500' : 'text-orange-500'}`}>
+        {isGood ? <CheckCircle size={64} /> : <AlertCircle size={64} />}
+      </div>
+      <h2 className="text-2xl font-bold mb-2 text-gray-800">{isGood ? "Bonne décision !" : "Attention..."}</h2>
+      <p className="text-gray-600 mb-6 text-lg leading-relaxed">{feedback}</p>
+      <button 
+        onClick={onNext}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg transform hover:scale-105 flex items-center justify-center mx-auto"
+      >
+        Problème Suivant <ArrowRight className="ml-2" size={20} />
+      </button>
+    </div>
+  </div>
+);
+
+const EndGameReview = ({ stats, onRestart }) => {
+  let message = "";
+  let rank = "";
+  const average = (stats.budget + stats.happiness + stats.security) / 3;
+
+  if (average > 80) {
+    message = "Excellent ! Vous avez parfaitement assimilé les principes du Guide. Votre ville est un modèle de sécurité et de bien-être.";
+    rank = "Urbaniste Expert";
+  } else if (average > 50) {
+    message = "Bon travail. Vous avez pris de bonnes initiatives, même si certains arbitrages étaient difficiles.";
+    rank = "Maire Engagé";
+  } else {
+    message = "Mandat difficile. La gestion urbaine est complexe ! Relisez le guide pour mieux comprendre l'impact de l'aménagement sur la sécurité.";
+    rank = "Apprenti Urbaniste";
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6 text-center font-fredoka">
+      <h1 className="text-4xl font-bold mb-4 text-yellow-400">Bilan de Mandat</h1>
+      <div className="bg-gray-800 p-8 rounded-xl shadow-xl max-w-lg border border-gray-700">
+        <p className="text-lg mb-6">{message}</p>
+        <div className="text-2xl font-bold mb-8 text-blue-300">Rang : {rank}</div>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="flex flex-col items-center">
+            <Coins className="text-yellow-400 mb-2" size={32} />
+            <div>{Math.round(stats.budget)}%</div>
+          </div>
+          <div className="flex flex-col items-center">
+            <Smile className="text-pink-400 mb-2" size={32} />
+            <div>{Math.round(stats.happiness)}%</div>
+          </div>
+          <div className="flex flex-col items-center">
+            <Shield className="text-blue-400 mb-2" size={32} />
+            <div>{Math.round(stats.security)}%</div>
+          </div>
+        </div>
+        <button 
+          onClick={onRestart}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg text-lg flex items-center justify-center mx-auto"
+        >
+          <RotateCcw className="mr-2" size={20} /> Recommencer
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [started, setStarted] = useState(false);
+  const [stats, setStats] = useState({ budget: 80, happiness: 75, security: 75 });
+  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+  const [modalInfo, setModalInfo] = useState(null);
+  const [gameFinished, setGameFinished] = useState(false);
+  const [animateStats, setAnimateStats] = useState(false);
+
+  const handleStart = () => {
+    setStarted(true);
+    setStats({ budget: 80, happiness: 75, security: 75 });
+    setCurrentScenarioIndex(0);
+    setGameFinished(false);
+  };
+
+  const handleChoice = (option) => {
+    const newStats = {
+      budget: Math.min(100, Math.max(0, stats.budget + option.stats.budget)),
+      happiness: Math.min(100, Math.max(0, stats.happiness + option.stats.happiness)),
+      security: Math.min(100, Math.max(0, stats.security + option.stats.security))
+    };
+    
+    setStats(newStats);
+    setAnimateStats(true);
+    setTimeout(() => setAnimateStats(false), 500);
+
+    setModalInfo({
+      feedback: option.feedback,
+      type: option.type
+    });
+  };
+
+  const nextScenario = () => {
+    setModalInfo(null);
+    if (currentScenarioIndex + 1 < SCENARIOS.length) {
+      setCurrentScenarioIndex(currentScenarioIndex + 1);
+    } else {
+      setGameFinished(true);
+    }
+  };
+
+  if (!started) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-900 flex flex-col items-center justify-center text-white p-4 font-fredoka">
+        <style>{globalStyles}</style>
+        <div className="bg-white text-gray-800 p-8 rounded-3xl shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-4 bg-yellow-400"></div>
+          <div className="flex justify-center mb-4 text-blue-600">
+            <Building2 size={64} />
+          </div>
+          <h1 className="text-4xl font-bold mb-2">Urban Mayor</h1>
+          <h2 className="text-xl text-gray-500 mb-6 font-light uppercase tracking-wider">Mission Sensibilisation</h2>
+          <p className="mb-8 text-lg leading-relaxed">
+            Bienvenue dans ce parcours interactif. 
+            <br/><br/>
+            Votre objectif n'est pas seulement de gagner, mais de <strong>comprendre</strong> les bonnes pratiques de sécurité urbaine à travers des situations concrètes.
+            <br/><br/>
+            Prenez les commandes et découvrez les solutions durables !
+          </p>
+          <button 
+            onClick={handleStart}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-4 px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95"
+          >
+            Lancer la Simulation
+          </button>
+        </div>
+        <p className="mt-6 text-blue-200 text-sm opacity-70">Basé sur le Guide Sécurité Publique</p>
+      </div>
+    );
+  }
+
+  if (gameFinished) {
+    return (
+      <>
+        <style>{globalStyles}</style>
+        <EndGameReview stats={stats} onRestart={handleStart} />
+      </>
+    );
+  }
+
+  const scenario = SCENARIOS[currentScenarioIndex];
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col max-w-md mx-auto shadow-2xl overflow-hidden relative border-x border-gray-200 font-fredoka">
+      <style>{globalStyles}</style>
+      
+      {/* Header Stats */}
+      <div className={`bg-white p-4 shadow-md z-10 transition-colors duration-300 ${animateStats ? 'bg-blue-50' : ''}`}>
+        <div className="flex justify-between items-end">
+          <StatBar Icon={Coins} value={stats.budget} color="bg-yellow-400" label="Budget" />
+          <StatBar Icon={Smile} value={stats.happiness} color="bg-pink-500" label="Population" />
+          <StatBar Icon={Shield} value={stats.security} color="bg-blue-500" label="Sécurité" />
+        </div>
+      </div>
+
+      {/* Game Content */}
+      <div className="flex-1 p-6 flex flex-col relative overflow-y-auto">
+        
+        {/* Progress */}
+        <div className="text-center mb-4">
+          <span className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+            Dossier {currentScenarioIndex + 1} / {SCENARIOS.length}
+          </span>
+        </div>
+
+        {/* Card */}
+        <div key={scenario.id} className="card-enter bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex-1 flex flex-col">
+          {/* Card Header Image/Icon */}
+          <div className="h-48 overflow-hidden relative bg-gray-100 flex items-center justify-center">
+            {scenario.image ? (
+              <img 
+                src={scenario.image} 
+                alt={scenario.title} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none'; // Cache l'image si elle n'est pas trouvée
+                  e.target.nextSibling.style.display = 'flex'; // Affiche l'icône de secours
+                }}
+              />
+            ) : null}
+            
+            {/* Fallback Icon (toujours rendu mais caché si image chargée avec succès) */}
+            <div 
+              className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center ${scenario.image ? 'hidden' : 'flex'}`}
+            >
+              <scenario.Icon size={64} className="text-white opacity-90 drop-shadow-lg" />
+            </div>
+
+            <div className="absolute bottom-2 right-4 text-blue-100 text-xs font-semibold bg-black bg-opacity-40 px-2 py-1 rounded backdrop-blur-sm border border-white/20">
+              {scenario.category}
+            </div>
+          </div>
+
+          {/* Card Body */}
+          <div className="p-6 flex-1 flex flex-col">
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">{scenario.title}</h2>
+            <p className="text-gray-600 mb-6 flex-1 text-lg">{scenario.description}</p>
+            
+            {/* Options */}
+            <div className="space-y-3">
+              {scenario.options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleChoice(option)}
+                  className="w-full text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 p-4 rounded-xl transition-all duration-200 group relative overflow-hidden"
+                >
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300 group-hover:bg-blue-400 transition-colors"></div>
+                  <span className="font-semibold text-gray-700 group-hover:text-blue-700">{option.text}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Modal Popup */}
+      {modalInfo && (
+        <Modal 
+          feedback={modalInfo.feedback} 
+          onNext={nextScenario} 
+          isGood={modalInfo.type === 'good'} 
+        />
+      )}
+
+    </div>
+  );
+}
