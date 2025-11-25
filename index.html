@@ -31,6 +31,12 @@
 
         .modal-enter { animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes modalPop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-800 min-h-screen flex items-center justify-center p-4">
@@ -40,29 +46,29 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- DONNÉES DU JEU (20 SCÉNARIOS - ENRICHIS AVEC LE PDF) ---
+        // --- DONNÉES DU JEU (20 SCÉNARIOS) ---
         const SCENARIOS = [
             {
                 id: 1,
-                title: "Rodéos Urbains",
-                description: "Des nuisances sonores et des conduites dangereuses (motos, quads) sont signalées. Les riverains sont excédés.",
-                image: "III) Delinquency Rodéo_page-0001.jpg",
+                title: "Rodéos Urbains / Partage Route",
+                description: "Des nuisances sonores et des conduites dangereuses (motos, quads) sont signalées. Les conflits usagers augmentent.",
+                image: "1 - partage de la route_page-0001.jpg", // Image 'Partage de la route' utilisée ici
                 fallbackIcon: "fa-motorcycle",
                 choices: [
                     { 
                         text: "Intervention Policière Musclée", 
                         impact: { budget: -10, pop: -5, sec: +15 },
-                        feedback: "Risqué. Comme à Villiers-le-Bel (2007), le 'contact tactique' peut provoquer des accidents graves et des émeutes, même si l'interpellation est immédiate."
+                        feedback: "Risqué. Comme à Villiers-le-Bel (2007), le 'contact tactique' peut provoquer des accidents graves et des émeutes."
                     },
                     { 
                         text: "Aménagements Urbains Dissuasifs", 
                         impact: { budget: -15, pop: +5, sec: +20 },
-                        feedback: "Excellent choix. Comme à Ternay (Rhône), l'installation d'obstacles physiques (chicanes, rochers) empêche techniquement la prise de vitesse sans risque de confrontation directe."
+                        feedback: "Excellent choix. Comme à Ternay (Rhône), l'installation d'obstacles physiques (chicanes, rochers) empêche la vitesse."
                     },
                     { 
                         text: "Vidéo-verbalisation & Saisies", 
                         impact: { budget: -5, pop: +10, sec: +10 },
-                        feedback: "Bonne approche légale. La loi de 2018 permet la confiscation des véhicules. C'est moins dangereux que la poursuite, mais cela demande d'identifier les auteurs (souvent cagoulés)."
+                        feedback: "Bonne approche légale. La loi de 2018 permet la confiscation des véhicules, limitant les risques de poursuite."
                     }
                 ]
             },
@@ -70,7 +76,7 @@
                 id: 2,
                 title: "Invasion de Rats & Propreté",
                 description: "Prolifération de rongeurs et dépôts sauvages. Risque sanitaire élevé.",
-                image: "IA Nuisibles_page-0001.jpg",
+                image: "IA Nuisibles_page-0001.jpg", // Image Rats/Nuisibles
                 fallbackIcon: "fa-bug",
                 choices: [
                     { 
@@ -81,7 +87,7 @@
                     { 
                         text: "Bornes enterrées & PV Ciblés", 
                         impact: { budget: -20, pop: +15, sec: +10 },
-                        feedback: "Très bien. Inspiré du Plan Propreté de Paris : limiter l'accès aux déchets (nourriture) via des bornes enterrées est la meilleure prévention durable."
+                        feedback: "Très bien. Inspiré du Plan Propreté de Paris : limiter l'accès aux déchets via des bornes enterrées est la meilleure prévention."
                     },
                     { 
                         text: "Campagne d'affichage", 
@@ -94,7 +100,7 @@
                 id: 3,
                 title: "Stationnement Anarchique",
                 description: "Trottoirs envahis, piétons en danger, visibilité réduite aux carrefours.",
-                image: "3 - stationnement sauvage_page-0001.jpg",
+                image: "3 - stationnement sauvage_page-0001.jpg", // Image Stationnement
                 fallbackIcon: "fa-square-parking",
                 choices: [
                     { 
@@ -105,7 +111,7 @@
                     { 
                         text: "Potelets & Réaménagement", 
                         impact: { budget: -10, pop: -5, sec: +15 },
-                        feedback: "La prévention physique (potelets) empêche physiquement l'infraction. Comme à Nantes (Feydeau), cela sécurise les piétons définitivement."
+                        feedback: "La prévention physique (potelets) empêche physiquement l'infraction. Comme à Nantes (Feydeau), cela sécurise les piétons."
                     },
                     { 
                         text: "Créer un Parking Relais (P+R)", 
@@ -158,7 +164,7 @@
                     { 
                         text: "Logement d'abord (Housing First)", 
                         impact: { budget: -20, pop: +15, sec: +15 },
-                        feedback: "La meilleure approche (modèle finlandais). Fournir un logement stable est la première étape vers la réinsertion, avant même le soin."
+                        feedback: "La meilleure approche (modèle finlandais). Fournir un logement stable est la première étape vers la réinsertion."
                     }
                 ]
             },
@@ -177,12 +183,12 @@
                     { 
                         text: "Ingénierie Urbaine (Éclairage/Voirie)", 
                         impact: { budget: -10, pop: +5, sec: +10 },
-                        feedback: "Bonne approche indirecte. Gêner le stationnement des clients et éclairer les zones sombres réduit l'activité sans confrontation."
+                        feedback: "Bonne approche indirecte. Gêner le stationnement des clients et éclairer les zones sombres réduit l'activité."
                     },
                     { 
                         text: "Accompagnement Social (Amicale du Nid)", 
                         impact: { budget: -10, pop: +10, sec: +5 },
-                        feedback: "Indispensable. Comme à Montpellier avec l'Amicale du Nid, il faut offrir des parcours de sortie (logement, santé) aux victimes."
+                        feedback: "Indispensable. Comme à Montpellier avec l'Amicale du Nid, il faut offrir des parcours de sortie (logement, santé)."
                     }
                 ]
             },
@@ -201,7 +207,7 @@
                     { 
                         text: "Rénovation Urbaine (Résidentialisation)", 
                         impact: { budget: -25, pop: +15, sec: +20 },
-                        feedback: "Approche structurelle (Jane Jacobs). Ouvrir les halls, supprimer les recoins, remettre de la 'surveillance naturelle' par les habitants."
+                        feedback: "Approche structurelle (Jane Jacobs). Ouvrir les halls, supprimer les recoins, remettre de la 'surveillance naturelle'."
                     },
                     { 
                         text: "Médiateurs de rue", 
@@ -236,9 +242,9 @@
             },
             {
                 id: 9,
-                title: "Harcèlement de Rue",
-                description: "Sentiment d'insécurité pour les femmes, notamment près de la gare.",
-                image: "2- Arret de nuit_page-0001.jpg",
+                title: "Harcèlement de Rue (Arrêt de nuit)",
+                description: "Sentiment d'insécurité pour les femmes, notamment près de la gare le soir.",
+                image: "2- Arret de nuit_page-0001.jpg", // Image Arrêt de nuit
                 fallbackIcon: "fa-person-harassing",
                 choices: [
                     { 
@@ -285,8 +291,8 @@
             {
                 id: 11,
                 title: "Squat / Bidonville",
-                description: "Campement illicite sur terrain vague. Conditions indignes.",
-                image: "III) Delinquency Bidonville_page-0001.jpg",
+                description: "Campement illicite sur terrain vague (Voie sans issue). Conditions indignes.",
+                image: "IV) Amenagement Voie sans issus_page-0001.jpg", // Image Voie sans issue utilisée ici
                 fallbackIcon: "fa-tents",
                 choices: [
                     { 
@@ -382,7 +388,7 @@
                 id: 15,
                 title: "Risque Inondation (Cévenol)",
                 description: "Alerte orange. Les rivières (Lez, Mosson) montent vite.",
-                image: "IV) Amenagement Chausée déformée_page-0001.jpg",
+                image: "IV) Amenagement Chausée déformée_page-0001.jpg", // Image Chaussée déformée
                 fallbackIcon: "fa-house-flood-water",
                 choices: [
                     { 
@@ -406,7 +412,7 @@
                 id: 16,
                 title: "Logement Insalubre",
                 description: "Immeuble dégradé, marchands de sommeil, enfants asthmatiques.",
-                image: "IV) Amenagement Logement insalubre_page-0001.jpg",
+                image: "IV) Amenagement Logement insalubre_page-0001.jpg", // Image Logement insalubre
                 fallbackIcon: "fa-house-crack",
                 choices: [
                     { 
@@ -454,7 +460,7 @@
                 id: 18,
                 title: "Vie Nocturne & Éclairage",
                 description: "Zones sombres anxiogènes. Les habitants n'osent plus sortir.",
-                image: "Pas d_éclairage_page-0001.jpg",
+                image: "Pas d_éclairage_page-0001.jpg", // Image Pas d'éclairage
                 fallbackIcon: "fa-lightbulb",
                 choices: [
                     { 
@@ -502,7 +508,7 @@
                 id: 20,
                 title: "Friches Urbaines",
                 description: "Ancienne usine abandonnée, squatée et polluée.",
-                image: "IA Dechets_page-0001.jpg",
+                image: "IA Dechets_page-0001.jpg", // Image Déchets (Friches)
                 fallbackIcon: "fa-industry",
                 choices: [
                     { 
@@ -524,12 +530,10 @@
             }
         ];
 
-        // --- COMPOSANTS ---
+        // --- COMPOSANTS (SmartImage, Gauge, FeedbackModal...) ---
 
-        // Gestionnaire d'image avec Fallback automatique
         const SmartImage = ({ src, fallbackIcon, alt }) => {
             const [hasError, setHasError] = useState(false);
-
             if (hasError) {
                 return (
                     <div className="w-full h-40 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center rounded-lg shadow-inner mb-4">
@@ -537,15 +541,9 @@
                     </div>
                 );
             }
-
             return (
                 <div className="w-full h-40 overflow-hidden rounded-lg mb-4 bg-slate-200 relative group">
-                    <img 
-                        src={src} 
-                        alt={alt} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={() => setHasError(true)}
-                    />
+                    <img src={src} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onError={() => setHasError(true)} />
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
             );
@@ -570,17 +568,13 @@
             );
         };
 
-        // --- MODAL DE FEEDBACK AMÉLIORÉ ---
         const FeedbackModal = ({ feedback, impacts, onNext }) => {
             return (
                 <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 modal-enter">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-600">
-                        {/* Header */}
                         <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
                             <h3 className="font-bold text-lg"><i className="fa-solid fa-clipboard-check mr-2"></i>Rapport d'Intervention</h3>
                         </div>
-
-                        {/* Body */}
                         <div className="p-6">
                             <div className="mb-6">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Analyse de l'expert</h4>
@@ -588,7 +582,6 @@
                                     "{feedback}"
                                 </div>
                             </div>
-
                             <div className="mb-6">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Impact Immédiat</h4>
                                 <div className="grid grid-cols-3 gap-3">
@@ -606,7 +599,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <button onClick={onNext} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-lg flex items-center justify-center gap-2">
                                 Dossier Suivant <i className="fa-solid fa-arrow-right"></i>
                             </button>
@@ -630,10 +622,23 @@
             );
         };
 
+        const ResourceCard = ({ icon, title, desc, link, tag }) => (
+            <a href={link} target="_blank" className="flex flex-col bg-white border border-slate-200 rounded-lg p-3 hover:border-blue-400 hover:shadow-md transition group text-left h-full">
+                <div className="flex justify-between items-start mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i className={`fa-solid ${icon}`}></i>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{tag}</span>
+                </div>
+                <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-blue-700 leading-tight">{title}</h4>
+                <p className="text-xs text-slate-500 line-clamp-2">{desc}</p>
+            </a>
+        );
+
         // --- MOTEUR DU JEU ---
 
         const App = () => {
-            const [screen, setScreen] = useState('start'); // start, game, end
+            const [screen, setScreen] = useState('start'); 
             const [showFeedback, setShowFeedback] = useState(false);
             const [stats, setStats] = useState({ budget: 50, pop: 50, sec: 50 });
             const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -667,6 +672,15 @@
                 if (total < 200) return "Maire Gestionnaire";
                 if (total < 260) return "Maire Engagé";
                 return "Maire Visionnaire";
+            };
+
+            const getGovernanceProfile = () => {
+                const { budget, pop, sec } = stats;
+                if (sec > 75 && pop < 40) return { title: "Le Shérif", desc: "La sécurité règne, mais l'ambiance est glaciale. Attention à ne pas transformer la ville en forteresse.", color: "text-indigo-600" };
+                if (pop > 75 && budget < 30) return { title: "Le Philanthrope", desc: "Le peuple vous adore, mais les caisses sont vides. La faillite menace !", color: "text-pink-600" };
+                if (budget > 75 && pop < 40) return { title: "Le Comptable", desc: "Des finances saines, mais une ville sans âme et sous tension.", color: "text-amber-600" };
+                if (sec > 60 && pop > 60 && budget > 40) return { title: "L'Équilibriste", desc: "Une gestion remarquable sur tous les fronts. Vous avez trouvé le juste milieu.", color: "text-emerald-600" };
+                return { title: "Le Pragmatique", desc: "Vous naviguez à vue pour maintenir le navire à flot sans grands excès.", color: "text-blue-600" };
             };
 
             // ÉCRAN ACCUEIL
@@ -757,47 +771,93 @@
                 );
             }
 
-            // ÉCRAN FIN
+            // ÉCRAN FIN (AMÉLIORÉ)
             if (screen === 'end') {
+                const profile = getGovernanceProfile();
                 return (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-lg fade-in my-8">
-                        <div className="bg-slate-900 p-8 text-center text-white relative overflow-hidden">
-                            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/city-fields.png')]"></div>
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ring-4 ring-blue-900/50">
-                                <i className="fa-solid fa-city text-4xl"></i>
-                            </div>
-                            <h2 className="text-xl font-medium text-blue-200 uppercase tracking-widest mb-1">Mandat Terminé</h2>
-                            <h1 className="text-3xl font-extrabold text-white">{calculateRank()}</h1>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="mb-8">
-                                <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-4 border-b pb-2">Bilan Définitif</h3>
-                                <div className="space-y-3">
-                                    <Gauge label="Santé Financière" value={stats.budget} icon="fa-coins" color="bg-amber-400" />
-                                    <Gauge label="Bonheur Citoyen" value={stats.pop} icon="fa-face-smile" color="bg-blue-400" />
-                                    <Gauge label="Sécurité Publique" value={stats.sec} icon="fa-shield-halved" color="bg-emerald-500" />
+                    <div className="bg-slate-50 rounded-xl shadow-2xl overflow-hidden w-full max-w-2xl fade-in my-8 border border-slate-200 flex flex-col md:flex-row">
+                        
+                        {/* Colonne Gauche : Bilan */}
+                        <div className="w-full md:w-1/2 bg-white p-6 flex flex-col border-r border-slate-100">
+                            <div className="text-center mb-6">
+                                <div className="inline-block p-3 bg-blue-50 rounded-full mb-3">
+                                    <i className="fa-solid fa-city text-3xl text-blue-600"></i>
                                 </div>
+                                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mandat Terminé</h2>
+                                <h1 className="text-2xl font-extrabold text-slate-800 mt-1">{calculateRank()}</h1>
                             </div>
 
-                            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100 mb-6">
-                                <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                                    <i className="fa-solid fa-graduation-cap"></i> Formation Continue
-                                </h3>
-                                <p className="text-sm text-blue-700/80 mb-4 leading-relaxed">
-                                    Ces scénarios sont inspirés de cas réels. Pour approfondir les concepts de prévention situationnelle et d'aménagement :
-                                </p>
-                                <div className="flex flex-col gap-3">
-                                    <a href="GUIDE SÉCURITÉ.pdf" target="_blank" className="flex items-center justify-between p-3 bg-white border border-blue-200 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition group shadow-sm">
-                                        <span className="font-semibold text-sm">Lire le Guide Complet</span>
-                                        <i className="fa-solid fa-file-pdf group-hover:scale-110 transition-transform"></i>
-                                    </a>
-                                </div>
+                            {/* Carte Profil de Gouvernance (Analytique) */}
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6 shadow-sm">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Votre Style de Gouvernance</h3>
+                                <div className={`text-lg font-bold ${profile.color} mb-1`}>{profile.title}</div>
+                                <p className="text-xs text-slate-600 italic leading-relaxed">"{profile.desc}"</p>
                             </div>
 
-                            <Button onClick={() => window.location.reload()} variant="primary">
+                            <div className="space-y-4 mb-6">
+                                <Gauge label="Santé Financière" value={stats.budget} icon="fa-coins" color="bg-amber-400" />
+                                <Gauge label="Bonheur Citoyen" value={stats.pop} icon="fa-face-smile" color="bg-blue-400" />
+                                <Gauge label="Sécurité Publique" value={stats.sec} icon="fa-shield-halved" color="bg-emerald-500" />
+                            </div>
+
+                            <Button onClick={() => window.location.reload()} variant="primary" className="mt-auto">
                                 <i className="fa-solid fa-rotate-right"></i> Nouveau Mandat
                             </Button>
+                        </div>
+
+                        {/* Colonne Droite : Médiathèque & Ressources (Nouveau) */}
+                        <div className="w-full md:w-1/2 bg-slate-50 p-6 custom-scroll overflow-y-auto max-h-[600px]">
+                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
+                                <i className="fa-solid fa-layer-group text-blue-600"></i> Pour aller plus loin
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 gap-3 mb-2">
+                                {/* Document Principal */}
+                                <ResourceCard 
+                                    icon="fa-file-pdf"
+                                    tag="Document"
+                                    title="Le Guide Complet Sécurité"
+                                    desc="Le document de référence complet avec toutes les solutions d'urbanisme."
+                                    link="GUIDE SÉCURITÉ.pdf"
+                                />
+
+                                {/* Vidéos et Articles (Simulés pour approfondissement) */}
+                                <ResourceCard 
+                                    icon="fa-youtube"
+                                    tag="Vidéo"
+                                    title="Prévention Situationnelle (CPTED)"
+                                    desc="Comprendre comment le design urbain réduit la criminalité sans caméras."
+                                    link="#"
+                                />
+                                <ResourceCard 
+                                    icon="fa-newspaper"
+                                    tag="Article"
+                                    title="L'impact de l'éclairage nocturne"
+                                    desc="Analyse du projet 'ToNite' à Turin et ses résultats sur le sentiment d'insécurité."
+                                    link="#"
+                                />
+                                <ResourceCard 
+                                    icon="fa-magnifying-glass-chart"
+                                    tag="Étude"
+                                    title="La résorption des bidonvilles"
+                                    desc="Retour sur l'expérience du village de transition de la Rauze."
+                                    link="#"
+                                />
+                                 <ResourceCard 
+                                    icon="fa-users-gear"
+                                    tag="Outil"
+                                    title="Diagnostic Local de Sécurité"
+                                    desc="Méthodologie pour réaliser votre propre diagnostic de territoire."
+                                    link="#"
+                                />
+                            </div>
+                            
+                            <div className="mt-4 p-3 bg-blue-100/50 rounded-lg border border-blue-200">
+                                <p className="text-[10px] text-blue-800 text-center">
+                                    <i className="fa-solid fa-info-circle mr-1"></i>
+                                    Ces ressources sont sélectionnées pour vous aider à approfondir les thématiques abordées dans le jeu.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 );
